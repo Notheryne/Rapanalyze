@@ -1,0 +1,4 @@
+
+#########################################
+Problem z: Chada
+argument of type 'NoneType' is not iterable
