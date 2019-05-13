@@ -1,44 +1,123 @@
 import math
 
-def count_vowels(word):
-    vowels = ['a', 'ą', 'e', 'ę', 'i', 'y', 'o', 'u',
-            'A', 'Ą', 'E', 'Ę', 'I', 'Y', 'O', 'U']
+vowels = {'a', 'ą', 'e', 'ę', 'i', 'y', 'o','ó', 'u',
+    'A','E', 'I', 'Y', 'O','Ó', 'U'}
 
-    counter = 0
-    indexes = []
+sounds = {'sz','cz','rz','ch','dż','dz'}
 
-    for i in range(len(word)):
-        if word[i] in vowels:
-            counter += 1
-            indexes.append(i)
+vowels_pairs =()
+class Syllables():
+    @staticmethod
+    def find_vowels(text):
+        indexes= []
+        i=0
+        while(i<len(text)):
 
-    return counter, indexes
+            if(text[i] in vowels):
+                if(i<len(text)-1):
 
-def gowno(word):
-    c, indexes = count_vowels(word)
-    mean = [0]
-    for i in range(1, len(indexes)):
-        mean.append(math.ceil((indexes[i-1] + indexes[i]) /2))
-    mean.append(len(word))
+                    if(text[i] =='i'):
 
-    syllabes = []
-    for i in range(len(mean)):
-        syllabes.append(word[mean[i-1]:mean[i]])
+                        if(text[i-1] not in vowels) and (text[i+1] in vowels):
+                            indexes.append((i-1,i+1))
+                            i+=2
+                            continue
 
-    return '-'.join(syllabes[1:])
+                        # handling wi,ci etc.
+                        elif (text[i-1] not in vowels):
+                            indexes.append((i-1,i))
+                            i+=1
+                            continue
+                        # handling ie,ia etc.
+                        elif(text[i+1] in vowels):
+                            indexes.append((i,i+1))
+                            i+=2
+                            continue
 
-with open('test.txt', 'r', encoding = 'utf-8') as rfile:
+                        else:
+                            indexes.append((i,i))
+                            i+=1
+                            continue
+
+
+
+
+                    # handling au, eu
+
+                    if((text[i] == 'e' or text[i] =='a') and text[i+1]=='u'):
+                        indexes.append((i,i+1))
+                        i+=2
+                        continue
+
+
+
+
+
+                indexes.append((i,i))
+
+            i+=1
+        return indexes
+
+    def split(text):
+
+        #syl = []
+
+        indexes = Syllables.find_vowels(text)
+        i = 0
+        #print(indexes)
+        while(i < len(indexes)-1):
+            begin = indexes[i][1]
+            end = indexes[i+1][0]
+            #print(begin,end)
+
+            r = list(range(begin,end))
+            #print('r',r)
+            l = len(r)
+            #print(text[end+i])
+            try:
+                if(text[end+1+i] == 'i'):
+                    l+=1
+            except:
+                pass
+                #print(l)
+            if(l>2):
+                s = math.floor((len(r))/2)
+                r = r[0:s+1][::-1] + r[s+1::][::-1]
+            #print(r)
+
+            for j in r:
+                #print("j",j)
+                if ("".join([text[j+i],text[j+1+i]]) in sounds):
+                    #print("wykryto dźwięk")
+                    continue
+                else:
+                    #print("else")
+                    #print("text :j+1",text[:j+1])
+                    #syl+= text[j+1]
+                    text = text[:j+1+i] + "-" +text[j+1+i:]
+                    break
+
+            i+=1
+
+        return text
+
+
+
+#print(Syllables.split("feudalny"))
+
+
+
+with open('scraping/x00', 'r', encoding = 'utf-8') as rfile:
     lyrics = rfile.read()
 
 lyrics = lyrics.replace('\n', ' ').strip(' ')
 
 lyrics = lyrics.split(' ')
-print(' '.join(lyrics))
-syl = []
-for l in lyrics:
-    syl.append(gowno(l))
+#print(' '.join(lyrics))
 
-syl = ' '.join(syl)
 
-with open("nasze_sylab-test.txt", 'w', encoding='utf-8') as wfile:
-    wfile.write(syl)
+lyrics = [Syllables.split(l) for l in lyrics]
+lyrics = "- -".join(lyrics)
+
+with open("x00_syl.txt", 'w', encoding='utf-8') as wfile:
+    wfile.write(lyrics)
