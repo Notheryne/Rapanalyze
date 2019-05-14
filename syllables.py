@@ -107,7 +107,7 @@ class Syllables():
 
 
 
-with open('scraping/x00', 'r', encoding = 'utf-8') as rfile:
+with open('scraping/clean.txt', 'r', encoding = 'utf-8') as rfile:
     lyrics = rfile.read()
 
 lyrics = lyrics.replace('\n', ' ').strip(' ')
@@ -119,5 +119,5 @@ lyrics = lyrics.split(' ')
 lyrics = [Syllables.split(l) for l in lyrics]
 lyrics = "- -".join(lyrics)
 
-with open("x00_syl.txt", 'w', encoding='utf-8') as wfile:
+with open("all_syl.txt", 'w', encoding='utf-8') as wfile:
     wfile.write(lyrics)

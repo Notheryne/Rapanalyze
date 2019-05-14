@@ -9,7 +9,7 @@ from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
 from syllables import Syllables
 import pygame as pg
-
+import time
 
 def define_model(vocab_size, max_length):
     model = Sequential()
@@ -30,7 +30,10 @@ def generate_seq(model, tokenizer, max_length, seed_text, n_words):
     in_text = seed_text
     # generate a fixed number of words
     i = 0
+    start = time.time()
     while i<n_words:
+        if time.time() - start > 1:
+            raise Exception('gowno')
         # encode the text as integer
         #print(in_text)
         encoded = tokenizer.texts_to_sequences([in_text])[0]
@@ -49,7 +52,8 @@ def generate_seq(model, tokenizer, max_length, seed_text, n_words):
                 break
 # append to input
         if(out_word==" "):
-            print("SPACJA")
+            pass
+            #print("SPACJA")
         else:
             i+=1
         in_text +="-"+out_word
@@ -78,11 +82,6 @@ max_length = max([len(seq) for seq in sequences])
 #sequences = pad_sequences(sequences, maxlen=max_length, padding= 'pre' )
 print( ' Max Sequence Length: %d ' % max_length)
 # split into input and output elements
-sequences = array(sequences)
-X, y = sequences[:,:-1],sequences[:,-1]
-y = to_categorical(y, num_classes=vocab_size)
-# define model
-model = define_model(vocab_size, max_length)
 # fit network
 #model.fit(X, y, epochs=100, verbose=2)
 # evaluate model
@@ -131,14 +130,34 @@ def main():
             if event.type == pg.KEYDOWN:
                 if active:
                     if event.key == pg.K_RETURN:
-                        text = text.split(' ')
+                        sequence = [generate_seq(model, tokenizer, max_length-1, Syllables.split(text), 16)]
+                        print(sequence)
+                        for i in range(1, 15):
+                            try:
+                                tmp = sequence[i-1]
+                                tmp = tmp.replace('-', '').replace("  ", " ")
+                                tmp = tmp.split(" ")
+                                tmp = tmp[-i]
+                                sequence.append(generate_seq(model,tokenizer,max_length-1, Syllables.split(tmp), 16))
+                            except:
+                                tmp = sequence[i-1]
+                                tmp = tmp.replace('-', '').replace("  ", " ")
+                                tmp = tmp.split(" ")
+                                tmp = tmp[-2]
+                                sequence.append(generate_seq(model,tokenizer,max_length-1, Syllables.split(tmp), 16))
+                        for i in sequence:
+                            print(i)
+
+                        """text = text.split(' ')
                         sequence = "\n".join([generate_seq(model, tokenizer, max_length-1, Syllables.split(t) , 15) for t in text]).replace("no-wali-nia ",'')
                         sequence.replace("-","|")
                         sequence = sequence.split('\n')
-                        print(sequence)
+                        print(sequence)"""
                         label = []
                         for line in sequence:
-                                label.append(font.render(line, True, (255,255,255)))
+                            line = line.replace("- ", " ")
+                            line = line.replace(" -", " ")
+                            label.append(font.render(line, True, (255,255,255)))
                         text = ''
                     elif event.key == pg.K_BACKSPACE:
                         text = text[:-1]

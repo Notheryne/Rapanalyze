@@ -7,6 +7,7 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
 from syllables import Syllables
+
 def define_model(vocab_size, max_length):
     model = Sequential()
     model.add(Embedding(vocab_size, 100, input_length=max_length-1))
@@ -49,7 +50,7 @@ def generate_seq(model, tokenizer, max_length, seed_text, n_words):
     return in_text
 
 
-with open('x00_syl.txt', 'r', encoding='utf-8') as rfile:
+with open('all_syl.txt', 'r', encoding='utf-8') as rfile:
     data = rfile.read()
 data = data.replace('\n',', nowalinia ')
 tokenizer = Tokenizer(split='-',filters="")
@@ -63,7 +64,7 @@ sequences = list()
 for i in range(5, len(encoded)):
     sequence = encoded[i-5:i+1]
     sequences.append(sequence)
-    print(sequence)
+    #print(sequence)
 print( ' Total Sequences: %d ' % len(sequences))
 # pad sequences
 max_length = max([len(seq) for seq in sequences])
@@ -72,15 +73,20 @@ print( ' Max Sequence Length: %d ' % max_length)
 # split into input and output elements
 sequences = array(sequences)
 X, y = sequences[:,:-1],sequences[:,-1]
+y_batch = to_categorical(y, nb_classes=vocab_size)
+model = define_model(vocab_size, max_length)
+model.train_on_batch(X_batch, y_batch)
+"""
 y = to_categorical(y, num_classes=vocab_size)
 # define model
 model = define_model(vocab_size, max_length)
+"""
 # fit network
 #model.fit(X, y, epochs=100, verbose=2)
 # evaluate model
 
 
-filepath="Saved_models/syllables_model_smaller-{epoch:02d}-{val_acc:.2f}.hdf5"
+filepath="Saved_models/syllables_model_tryagain-{epoch:02d}-{val_acc:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=False, mode='max')
 callbacks_list = [checkpoint]
 # Fit the model
